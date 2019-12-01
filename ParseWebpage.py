@@ -1,6 +1,5 @@
 import urllib.request
-from html.parser import HTMLParser
-import re
+import bs4 as bs
 
 infile = urllib.request.urlopen("http://www.dealsea.com")
 data = infile.read().decode()
@@ -12,46 +11,12 @@ f.close()
 #text = f.read()
 #f.close()
 
-class MyHTMLParser(HTMLParser):
-    def __init__(self):
-        super().__init__()
-        self.superlist = list()
-        self.otherlist = list()
-        self.tag = ""
-        self.listnum = 0
-    def getlist(self):
-        return self.superlist
-    def handle_starttag(self, tag, attrs):
-        self.tag = str(tag)+ str(attrs)
-        if(attrs == [('class', 'dealbox')]):
-            #print("yYYYYYYYYYYYYYYYYYYYYYYYYYYY")
-            self.superlist.append(self.otherlist)
-            self.otherlist = list()
-            self.listnum += 1
-            #print("Encountered a start tag:", tag)
-        pass
+soup = bs.BeautifulSoup(data, 'html.parser')
 
-    def handle_endtag(self, tag):
-        #print("Encountered an end tag :", tag)
-        pass
+soup2 = soup.findAll("div", class_="dealcontent")
 
-    def handle_data(self, data):
-        databackup = data
-        data = re.sub(r"[\n\t\s]*", "", data)
-        if data != "":
-            self.otherlist.append([self.tag,databackup])
-            #print("Encountered some data  :", data)
-
-parser = MyHTMLParser()
-parser.feed(data)
-
-test = parser.getlist()[1:-1]
-
-for i in range(len(test)):
-    for j in range(len(test[i])):
-        if test[i][j][0] == "span[('class', 'carat')]":
-            test[i] = test[i][0:j]
-            print("Halijaua")
-            break
-        else:
-            print(i,j,test[i][j])
+soup3 = []
+for i in soup2:
+    #print(i.strong.a.get_text())
+    soup3.append(i.strong.a.get_text())
+print(len(soup3),"element(s)")
