@@ -32,14 +32,16 @@ soup = bs.BeautifulSoup(data, 'html.parser')
 
 soup2 = soup.findAll("div", class_="dealcontent")
 
-soup3 = []
+dealSea = []
 for i in soup2:
     title = i.strong.a.get_text()
     link = i.strong.a.get('href')
     vendor = i.div.a.get_text()
+    content = i.div.get_text()
 
-    soup3.append(deal(title,link,'test',vendor))
+    dealSea.append(deal(title,link,content,vendor))
 
-for i in soup3:
+for i in dealSea:
     print(i.getVendor(),i.getLink(),i.getTitle())
-print(len(soup3), "element(s)")
+    print(i.getContent())
+print(len(dealSea), "element(s)")
