@@ -36,9 +36,10 @@ soup3 = []
 for i in soup2:
     title = i.strong.a.get_text()
     link = i.strong.a.get('href')
+    vendor = i.div.a.get_text()
 
-    soup3.append(deal(title,link,'test','test'))
+    soup3.append(deal(title,link,'test',vendor))
 
 for i in soup3:
-    print(i.getLink(),i.getTitle())
+    print(i.getVendor(),i.getLink(),i.getTitle())
 print(len(soup3), "element(s)")
