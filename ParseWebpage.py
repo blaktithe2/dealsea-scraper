@@ -11,12 +11,17 @@ class deal:
         return self.link
     def getTitle(self):
         return self.title
-    def setTitle(self, title):
-        self.title = title
     def getContent(self):
         return self.content
     def getVendor(self):
         return self.vendor
+def displayDeals(deals, n):
+    length = len(deals)
+    if length < n:
+        return
+    print("Title, vendor, URL, content")
+    for i in range(n):
+        print(deals[i].getTitle(),":",deals[i].getVendor(),":",deals[i].getLink(),":",deals[i].getContent())
 
 infile = urllib.request.urlopen("http://www.dealsea.com")
 data = infile.read().decode()
@@ -41,7 +46,4 @@ for i in soup2:
 
     dealSea.append(deal(title,link,content,vendor))
 
-for i in dealSea:
-    print(i.getVendor(),i.getLink(),i.getTitle())
-    print(i.getContent())
-print(len(dealSea), "element(s)")
+displayDeals(dealSea, 5)
