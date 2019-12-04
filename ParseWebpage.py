@@ -97,6 +97,24 @@ def getFromSQL():
 
     for x in myresult:
       print(x)
+
+def getDealDetails(URL):
+    webdata = urllib.request.urlopen("http://www.dealsea.com"+URL)
+    data = webdata.read().decode()
+    soup = bs.BeautifulSoup(data, 'html.parser')
+
+    divSoup = soup.find("div", class_="deal")
+    difDiv = divSoup.findAll("div")
+    nextT = difDiv[-1]
+    Author = nextT.findAll('p')[1].get_text()
+    title = soup.find("h1").get_text()
+
+    divSoup = soup.find("div", class_="posttext")
+    vendor = divSoup.a.get_text()
+    content = divSoup.div.get_text()
+    newDeal = deal(title,URL,content,vendor)
+    return Author,newDeal
+
 #MEAT
 infile = urllib.request.urlopen("http://www.dealsea.com")
 data = infile.read().decode()
@@ -120,6 +138,8 @@ for i in divSoup:
     content = i.div.get_text()
 
     dealSea.append(deal(title,link,content,vendor))
+
+print(getDealDetails(dealSea[1].getLink()))
 
 displayDeals(dealSea, 5)
 
