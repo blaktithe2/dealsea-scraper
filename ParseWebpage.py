@@ -138,19 +138,31 @@ for i in divSoup:
     content = i.div.get_text()
 
     dealSea.append(deal(title,link,content,vendor))
-for i in dealSea:
-    author, newDeal = getDealDetails(i.getLink())
-    print(author)
-    print(newDeal.getTitle())
 
-displayDeals(dealSea, 5)
+ans = 0
+while(ans != -1):
+    try:
+        ans = int(input("1:displayDeals 2: send deal Email 3: Send deal SMS 4: send to SQL 5: get from SQL 6: get deal details from page\n"))
+    except ValueError:
+        ans = 0
+    if ans == 1:
+        displayDeals(dealSea, 5)
+    elif ans == 2:
+        print(sendEmail(getDealsText(dealSea, 10)))
+    elif ans == 3:
+        print(sendSMS(dealSea[0].getTitle()))
+    elif ans == 4:
+        sendToSQL(dealSea[0:5])
+    elif ans == 5:
+        getFromSQL()
+    elif ans == 6:
+        try:
+            for i in dealSea:
+                author, newDeal = getDealDetails(i.getLink())
+                print(author)
+                print(newDeal.getTitle())
+        except KeyboardInterrupt:
+            pass
 
-print(sendEmail(getDealsText(dealSea, 10)))
-
-print(sendSMS(dealSea[0].getTitle()))
-
-sendToSQL(dealSea[0:5])
-
-getFromSQL()
 
 
