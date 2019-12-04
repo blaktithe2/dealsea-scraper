@@ -10,6 +10,9 @@ class deal:
         self.link = link
         self.content = content
         self.vendor = vendor
+        self.author = ""
+        self.outsideLink = ""
+        self.price = ""
 
     def getLink(self):
         return self.link
@@ -19,6 +22,18 @@ class deal:
         return self.content
     def getVendor(self):
         return self.vendor
+    def setOutsideLink(self, link):
+        self.outsideLink = link
+    def getOutsideLink(self):
+        return self.outsideLink
+    def setAuthor(self,author):
+        self.author = author
+    def getAuthor(self):
+        return self.author
+    def setPrice(self, price):
+        self.price = price
+    def getPrice(self):
+        return self.price
 
 def getDealsText(deals, n):
     length = len(deals)
@@ -147,11 +162,21 @@ def getDealDetails(URL):
     divSoup = soup.find("div", class_="posttext")
     vendor = divSoup.a.get_text()
     vendorURL = divSoup.a.get('href')
-    linkedURL = requests.get("http://dealsea.com"+vendorURL).url
+    try:
+        linkedURL = requests.get("http://dealsea.com"+vendorURL).url
+        print('heree')
+    except requests.exceptions.Timeout:
+        linkedURL = "http://dealsea.com"+vendorURL
+        print("Unable to resolve link.")
     content = divSoup.get_text()
-    newDeal = deal(title,URL,content,vendor)
 
-    return Author,linkedURL,newDeal
+    price = soup.find("span", class_="price").get_text()
+
+    newDeal = deal(title,URL,content,vendor)
+    newDeal.setAuthor(Author)
+    newDeal.setOutsideLink(linkedURL)
+    newDeal.setPrice(price)
+    return newDeal
 
 def getDealsFromWebpage():
     try:
@@ -277,8 +302,8 @@ while(ans != -1):
     elif ans == 6:
         try:
             for i in dealSea:
-                author,linkedURL, newDeal = getDealDetails(i.getLink())
-                print(author,linkedURL)
+                newDeal = getDealDetails(i.getLink())
+                print(newDeal.getAuthor(),newDeal.getOutsideLink(),newDeal.getPrice())
                 print(newDeal.getTitle())
         except KeyboardInterrupt:
             pass
