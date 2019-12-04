@@ -37,28 +37,35 @@ def displayDeals(deals, n):
     for i in range(n):
         print(deals[i].getTitle(),":",deals[i].getVendor(),":",deals[i].getLink(),"\n",deals[i].getContent() + "\n----------------------------------------")
 
-def sendEmail(deals):
-    f = open('mailgun.key')
-    key = f.read()
-    f.close()
+def sendEmail(deals, num):
+    data = getDealsText(deals, num)
+    try:
+        f = open('mailgun.key')
+        key = f.read()
+        f.close()
+    except IOError:
+        print("Mailgun API key missing")
     return requests.post(
         "https://api.mailgun.net/v3/sandboxd10bb35ab0c4461aabdc94d6fce977ac.mailgun.org/messages",
         auth=("api", key),
         data={"from": "Mailgun Sandbox <postmaster@sandboxd10bb35ab0c4461aabdc94d6fce977ac.mailgun.org>",
             "to": "Lance Jordan <lance.e.jordan@gmail.com>",
-            "subject": "Dealsea top 10 deals",
-            "text": deals})
+            "subject": "Dealsea top "+str(num)+" deals",
+            "text": data})
 
-def sendSMS(deals):
-    f = open('twilio.key')
-    auth_token = f.read()
-    f.close()
+def sendSMS(data):
+    try:
+        f = open('twilio.key')
+        auth_token = f.read()
+        f.close()
+    except IOError:
+        print("Twilio API key missing")
     account_sid = 'AC5a814c3a42f034a8f0aeca0f0539743f'
     client = Client(account_sid, auth_token)
 
     message = client.messages \
                     .create(
-                         body=deals,
+                         body=data,
                          from_='+12564149948', #Twilio phone number
                          to='+12818535023' #Lance's phone number
                      )
@@ -67,9 +74,12 @@ def sendSMS(deals):
 
 def sendToSQL(deals):
     n = len(deals)
-    f = open('SQL.key')
-    password = f.read()
-    f.close()
+    try:
+        f = open('SQL.key')
+        password = f.read()
+        f.close()
+    except IOError:
+        print("SQL API key missing")
     host="192.232.216.112"
     user="lancejor_dan"
     database="lancejor_COSC1437"
@@ -82,9 +92,12 @@ def sendToSQL(deals):
 
         mydb.commit()
 def getFromSQL():
-    f = open('SQL.key')
-    password = f.read()
-    f.close()
+    try:
+        f = open('SQL.key')
+        password = f.read()
+        f.close()
+    except IOError:
+        print("SQL API key missing")
     host="192.232.216.112"
     user="lancejor_dan"
     database="lancejor_COSC1437"
@@ -97,6 +110,7 @@ def getFromSQL():
 
     for x in myresult:
       print(x)
+      pass
 
 def getDealDetails(URL):
     webdata = urllib.request.urlopen("http://www.dealsea.com"+URL)
@@ -115,16 +129,49 @@ def getDealDetails(URL):
     newDeal = deal(title,URL,content,vendor)
     return Author,newDeal
 
+def getDealsFromWebpage():
+    try:
+        infile = urllib.request.urlopen("http://www.dealsea.com")
+    except:
+        pass
+    return infile.read().decode()
+
+def writeDealsToFile(data):
+    try:
+        f = open('dealsea.data', 'w')
+        f.write(data)
+        f.close()
+    except IOError:
+        print("dealSea.data missing")
+def readDealsFromFile():
+    try:
+        f = open('dealsea.data', 'r')
+        data = f.read()
+        f.close()
+    except:
+        pass
+    return data
+
+
 #MEAT
-infile = urllib.request.urlopen("http://www.dealsea.com")
-data = infile.read().decode()
-f = open('dealsea.data', 'w')
-f.write(data)
-f.close()
-#Read file
-#f = open('dealsea.data')
-#text = f.read()
-#f.close()
+
+access = 0
+data = ""
+while(access != -1):
+    try:
+        access = int(input("1:Get data from http 2: get data from file 3: save data to file 4: pass onto parsing"))
+    except ValueError:
+        access = 0
+    if access == 1:
+        data = getDealsFromWebpage()
+    elif access == 2:
+        data = readDealsFromFile()
+    elif access == 3:
+        writeDealsToFile(data)
+    elif access == 4:
+        access = -1
+data = getDealsFromWebpage()
+
 
 soup = bs.BeautifulSoup(data, 'html.parser')
 
@@ -148,7 +195,8 @@ while(ans != -1):
     if ans == 1:
         displayDeals(dealSea, 5)
     elif ans == 2:
-        print(sendEmail(getDealsText(dealSea, 10)))
+        num = int(input("How many deals to mail"))
+        print(sendEmail(dealSea, num))
     elif ans == 3:
         print(sendSMS(dealSea[0].getTitle()))
     elif ans == 4:
