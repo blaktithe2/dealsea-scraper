@@ -7,4 +7,4 @@ Scraping Dealsea.com
 - [x] Send deal by email (5 bounce points)
 - [ ] Display deals details from linked page (15 bonus points)
 - [ ] Insert deal to SQL Server database (5 bonus points)
-- [ ] Send deal by text message (10 bonus  points)
+- [x] Send deal by text message (10 bonus  points)
