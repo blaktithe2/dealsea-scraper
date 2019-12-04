@@ -111,7 +111,7 @@ def getDealDetails(URL):
 
     divSoup = soup.find("div", class_="posttext")
     vendor = divSoup.a.get_text()
-    content = divSoup.div.get_text()
+    content = divSoup.get_text()
     newDeal = deal(title,URL,content,vendor)
     return Author,newDeal
 
@@ -138,8 +138,10 @@ for i in divSoup:
     content = i.div.get_text()
 
     dealSea.append(deal(title,link,content,vendor))
-
-print(getDealDetails(dealSea[1].getLink()))
+for i in dealSea:
+    author, newDeal = getDealDetails(i.getLink())
+    print(author)
+    print(newDeal.getTitle())
 
 displayDeals(dealSea, 5)
 
