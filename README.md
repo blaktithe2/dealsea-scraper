@@ -6,5 +6,5 @@ Scraping Dealsea.com
 - [x] Output should be in certain format (for example: deal name, vendor, link, deal content)
 - [x] Send deal by email (5 bounce points)
 - [ ] Display deals details from linked page (15 bonus points)
-- [ ] Insert deal to SQL Server database (5 bonus points)
+- [x] Insert deal to SQL Server database (5 bonus points)
 - [x] Send deal by text message (10 bonus  points)
