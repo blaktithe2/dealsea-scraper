@@ -2,6 +2,7 @@ import urllib.request
 import bs4 as bs
 import requests
 from twilio.rest import Client
+import mysql.connector
 
 class deal:
     def __init__(self, title, link, content, vendor):
@@ -9,6 +10,7 @@ class deal:
         self.link = link
         self.content = content
         self.vendor = vendor
+
     def getLink(self):
         return self.link
     def getTitle(self):
@@ -17,22 +19,23 @@ class deal:
         return self.content
     def getVendor(self):
         return self.vendor
+
 def getDealsText(deals, n):
     length = len(deals)
     text = ""
     if length < n:
         return
-    print("Title, vendor, URL, content")
     for i in range(n):
         text = text + "\n" + deals[i].getTitle() + " : " + deals[i].getVendor() + " : " + deals[i].getLink() + "\n" + deals[i].getContent() + "\n----------------------------------------"
     return text
 def displayDeals(deals, n):
     length = len(deals)
     if length < n:
+        print("Not enough deals.")
         return
     print("Title, vendor, URL, content")
     for i in range(n):
-        print(deals[i].getTitle(),":",deals[i].getVendor(),":",deals[i].getLink(),":",deals[i].getContent())
+        print(deals[i].getTitle(),":",deals[i].getVendor(),":",deals[i].getLink(),"\n",deals[i].getContent() + "\n----------------------------------------")
 
 def sendEmail(deals):
     f = open('mailgun.key')
@@ -60,8 +63,41 @@ def sendSMS(deals):
                          to='+12818535023' #Lance's phone number
                      )
 
-    print(message.sid)
+    return message.sid
 
+def sendToSQL(deals):
+    n = len(deals)
+    f = open('SQL.key')
+    password = f.read()
+    f.close()
+    host="192.232.216.112"
+    user="lancejor_dan"
+    database="lancejor_COSC1437"
+    mydb = mysql.connector.connect(host=host,user=user,password=password,database=database)
+    mycursor = mydb.cursor()
+    for i in deals:
+        sql = "INSERT INTO `Dealsea` (`title`, `link`, `content`, `vendor`) VALUES (%s, %s, %s, %s);"
+        val = (i.getTitle(),i.getLink(),i.getContent(),i.getVendor())
+        mycursor.execute(sql, val)
+
+        mydb.commit()
+def getFromSQL():
+    f = open('SQL.key')
+    password = f.read()
+    f.close()
+    host="192.232.216.112"
+    user="lancejor_dan"
+    database="lancejor_COSC1437"
+    mydb = mysql.connector.connect(host=host,user=user,password=password,database=database)
+    mycursor = mydb.cursor()
+
+    mycursor.execute("SELECT * FROM `Dealsea`")
+
+    myresult = mycursor.fetchall()
+
+    for x in myresult:
+      print(x)
+#MEAT
 infile = urllib.request.urlopen("http://www.dealsea.com")
 data = infile.read().decode()
 f = open('dealsea.data', 'w')
@@ -90,4 +126,9 @@ displayDeals(dealSea, 5)
 print(sendEmail(getDealsText(dealSea, 10)))
 
 print(sendSMS(dealSea[0].getTitle()))
+
+sendToSQL(dealSea[0:5])
+
+getFromSQL()
+
 
