@@ -24,6 +24,7 @@ def getDealsText(deals, n):
     length = len(deals)
     text = ""
     if length < n:
+        print("Not enough deals")
         return
     for i in range(n):
         text = text + "\n" + deals[i].getTitle() + " : " + deals[i].getVendor() + " : " + deals[i].getLink() + "\n" + deals[i].getContent() + "\n----------------------------------------"
@@ -37,7 +38,7 @@ def displayDeals(deals, n):
     for i in range(n):
         print(deals[i].getTitle(),":",deals[i].getVendor(),":",deals[i].getLink(),"\n",deals[i].getContent() + "\n----------------------------------------")
 
-def sendEmail(deals, num):
+def sendEmail(deals, num, email):
     data = getDealsText(deals, num)
     try:
         f = open('mailgun.key')
@@ -49,7 +50,7 @@ def sendEmail(deals, num):
         "https://api.mailgun.net/v3/sandboxd10bb35ab0c4461aabdc94d6fce977ac.mailgun.org/messages",
         auth=("api", key),
         data={"from": "Mailgun Sandbox <postmaster@sandboxd10bb35ab0c4461aabdc94d6fce977ac.mailgun.org>",
-            "to": "Lance Jordan <lance.e.jordan@gmail.com>",
+            "to": email,
             "subject": "Dealsea top "+str(num)+" deals",
             "text": data})
 
@@ -72,8 +73,11 @@ def sendSMS(data):
 
     return message.sid
 
-def sendToSQL(deals):
-    n = len(deals)
+def sendToSQL(deals,n):
+    length = len(deals)
+    if length < n:
+        print("Not enough deals")
+        return
     try:
         f = open('SQL.key')
         password = f.read()
@@ -91,6 +95,21 @@ def sendToSQL(deals):
         mycursor.execute(sql, val)
 
         mydb.commit()
+def truncateSQLDatabase(): 
+    try:
+        f = open('SQL.key')
+        password = f.read()
+        f.close()
+    except IOError:
+        print("SQL API key missing")
+    host="192.232.216.112"
+    user="lancejor_dan"
+    database="lancejor_COSC1437"
+    mydb = mysql.connector.connect(host=host,user=user,password=password,database=database)
+    mycursor = mydb.cursor()
+    mycursor.execute("TRUNCATE `lancejor_COSC1437`.`Dealsea`")
+    mydb.commit()
+
 def getFromSQL():
     try:
         f = open('SQL.key')
@@ -151,7 +170,21 @@ def readDealsFromFile():
     except:
         pass
     return data
+    
+def parse(data):
+    soup = bs.BeautifulSoup(data, 'html.parser')
 
+    divSoup = soup.findAll("div", class_="dealcontent")
+
+    dealSea = []
+    for i in divSoup:
+        title = i.strong.a.get_text()
+        link = i.strong.a.get('href')
+        vendor = i.div.a.get_text()
+        content = i.div.get_text()
+
+        dealSea.append(deal(title,link,content,vendor))
+    return dealSea
 
 #MEAT
 
@@ -172,37 +205,30 @@ while(access != -1):
         access = -1
 data = getDealsFromWebpage()
 
-
-soup = bs.BeautifulSoup(data, 'html.parser')
-
-divSoup = soup.findAll("div", class_="dealcontent")
-
-dealSea = []
-for i in divSoup:
-    title = i.strong.a.get_text()
-    link = i.strong.a.get('href')
-    vendor = i.div.a.get_text()
-    content = i.div.get_text()
-
-    dealSea.append(deal(title,link,content,vendor))
+dealSea = parse(data)
 
 ans = 0
 while(ans != -1):
     try:
-        ans = int(input("1:displayDeals 2: send deal Email 3: Send deal SMS 4: send to SQL 5: get from SQL 6: get deal details from page\n"))
+        ans = int(input("1:displayDeals 2: send deal Email 3: Send deal SMS 4: send to SQL 5: get from SQL 6: get deal details from page 7: Truncate SQL database\n"))
     except ValueError:
         ans = 0
     if ans == 1:
-        displayDeals(dealSea, 5)
+        num = int(input("How many deals to display?"))
+        displayDeals(dealSea, num)
     elif ans == 2:
-        num = int(input("How many deals to mail"))
-        print(sendEmail(dealSea, num))
+        num = int(input("How many deals to mail?"))
+        email = input("Email address")
+        print(sendEmail(dealSea, num, email))
     elif ans == 3:
         print(sendSMS(dealSea[0].getTitle()))
     elif ans == 4:
-        sendToSQL(dealSea[0:5])
+        num = int(input("How many deals to mail?"))
+        sendToSQL(dealSea,num)
     elif ans == 5:
         getFromSQL()
+    elif ans == 7:
+        truncateSQLDatabase()
     elif ans == 6:
         try:
             for i in dealSea:
