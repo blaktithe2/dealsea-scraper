@@ -24,15 +24,16 @@ def getDealsText(deals, n):
     length = len(deals)
     text = ""
     if length < n:
-        print("Not enough deals")
+        print("Not enough deals",length,n)
         return
     for i in range(n):
         text = text + "\n" + deals[i].getTitle() + " : " + deals[i].getVendor() + " : " + deals[i].getLink() + "\n" + deals[i].getContent() + "\n----------------------------------------"
     return text
+
 def displayDeals(deals, n):
     length = len(deals)
     if length < n:
-        print("Not enough deals.")
+        print("Not enough deals",length,n)
         return
     print("Title, vendor, URL, content")
     for i in range(n):
@@ -76,7 +77,7 @@ def sendSMS(data):
 def sendToSQL(deals,n):
     length = len(deals)
     if length < n:
-        print("Not enough deals")
+        print("Not enough deals",length,n)
         return
     try:
         f = open('SQL.key')
@@ -95,6 +96,7 @@ def sendToSQL(deals,n):
         mycursor.execute(sql, val)
 
         mydb.commit()
+
 def truncateSQLDatabase(): 
     try:
         f = open('SQL.key')
@@ -162,6 +164,7 @@ def writeDealsToFile(data):
         f.close()
     except IOError:
         print("dealSea.data missing")
+
 def readDealsFromFile():
     try:
         f = open('dealsea.data', 'r')
@@ -170,7 +173,7 @@ def readDealsFromFile():
     except:
         pass
     return data
-    
+
 def parse(data):
     soup = bs.BeautifulSoup(data, 'html.parser')
 
@@ -186,6 +189,40 @@ def parse(data):
         dealSea.append(deal(title,link,content,vendor))
     return dealSea
 
+def unitTest():
+    try:
+        file = open("unitTestInput.data", 'r')
+        testData = file.read()
+        file.close()
+        file = open("unitTestOuput.data", 'r')
+        testOutput = file.read()
+        file.close()
+    except:
+        pass
+    parsed = parse(testData)
+    if getDealsText(parsed,len(parsed)) == testOutput:
+        print("Success!")
+        return True
+    else:
+        print("Fail.")
+        return False
+def makeUnitTest():
+    webData = getDealsFromWebpage()
+    parseData = parse(webData)
+    try:
+        file = open("unitTestInput.data", 'w')
+        file.write(webData)
+        file.close()
+        file = open("unitTestOuput.data", 'w')
+        n = len(parseData)
+        file.write(getDealsText(parseData, len(parseData)))
+        file.close()
+    except:
+        pass
+    if unitTest():
+        print("Unit test successful written.")
+    else:
+        print("Unit test writing failed")
 #MEAT
 
 access = 0
@@ -203,6 +240,7 @@ while(access != -1):
         writeDealsToFile(data)
     elif access == 4:
         access = -1
+
 data = getDealsFromWebpage()
 
 dealSea = parse(data)
@@ -229,6 +267,8 @@ while(ans != -1):
         getFromSQL()
     elif ans == 7:
         truncateSQLDatabase()
+    elif ans == 8:
+        makeUnitTest()
     elif ans == 6:
         try:
             for i in dealSea:
