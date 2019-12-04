@@ -1,6 +1,7 @@
 import urllib.request
 import bs4 as bs
 import requests
+from twilio.rest import Client
 
 class deal:
     def __init__(self, title, link, content, vendor):
@@ -33,7 +34,7 @@ def displayDeals(deals, n):
     for i in range(n):
         print(deals[i].getTitle(),":",deals[i].getVendor(),":",deals[i].getLink(),":",deals[i].getContent())
 
-def sendDeals(deals):
+def sendEmail(deals):
     f = open('mailgun.key')
     key = f.read()
     f.close()
@@ -44,6 +45,22 @@ def sendDeals(deals):
             "to": "Lance Jordan <lance.e.jordan@gmail.com>",
             "subject": "Dealsea top 10 deals",
             "text": deals})
+
+def sendSMS(deals):
+    f = open('twilio.key')
+    auth_token = f.read()
+    f.close()
+    account_sid = 'AC5a814c3a42f034a8f0aeca0f0539743f'
+    client = Client(account_sid, auth_token)
+
+    message = client.messages \
+                    .create(
+                         body=deals,
+                         from_='+12564149948', #Twilio phone number
+                         to='+12818535023' #Lance's phone number
+                     )
+
+    print(message.sid)
 
 infile = urllib.request.urlopen("http://www.dealsea.com")
 data = infile.read().decode()
@@ -70,5 +87,7 @@ for i in divSoup:
 
 displayDeals(dealSea, 5)
 
-print(sendDeals(getDealsText(dealSea, 10)))
+print(sendEmail(getDealsText(dealSea, 10)))
+
+print(sendSMS(dealSea[0].getTitle()))
 
