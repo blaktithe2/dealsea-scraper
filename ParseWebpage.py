@@ -146,9 +146,12 @@ def getDealDetails(URL):
 
     divSoup = soup.find("div", class_="posttext")
     vendor = divSoup.a.get_text()
+    vendorURL = divSoup.a.get('href')
+    linkedURL = requests.get("http://dealsea.com"+vendorURL).url
     content = divSoup.get_text()
     newDeal = deal(title,URL,content,vendor)
-    return Author,newDeal
+
+    return Author,linkedURL,newDeal
 
 def getDealsFromWebpage():
     try:
@@ -248,7 +251,7 @@ dealSea = parse(data)
 ans = 0
 while(ans != -1):
     try:
-        ans = int(input("1:displayDeals 2: send deal Email 3: Send deal SMS 4: send to SQL 5: get from SQL 6: get deal details from page 7: Truncate SQL database\n"))
+        ans = int(input("1:displayDeals 2: send deal Email 3: Send deal SMS 4: send to SQL 5: get from SQL 6: get deal details from page 7: Truncate SQL database 8:run unit test\n"))
     except ValueError:
         ans = 0
     if ans == 1:
@@ -268,12 +271,14 @@ while(ans != -1):
     elif ans == 7:
         truncateSQLDatabase()
     elif ans == 8:
+        UnitTest()
+    elif ans == 9:
         makeUnitTest()
     elif ans == 6:
         try:
             for i in dealSea:
-                author, newDeal = getDealDetails(i.getLink())
-                print(author)
+                author,linkedURL, newDeal = getDealDetails(i.getLink())
+                print(author,linkedURL)
                 print(newDeal.getTitle())
         except KeyboardInterrupt:
             pass
