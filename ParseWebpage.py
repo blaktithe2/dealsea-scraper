@@ -13,6 +13,7 @@ class deal:
         self.author = ""
         self.outsideLink = ""
         self.price = ""
+        self.time = ""
 
     def getLink(self):
         return self.link
@@ -34,6 +35,10 @@ class deal:
         self.price = price
     def getPrice(self):
         return self.price
+    def setTime(self,time):
+        self.time = time
+    def getTime(self):
+        return self.time
 
 def getDealsText(deals, n):
     length = len(deals)
@@ -42,7 +47,7 @@ def getDealsText(deals, n):
         print("Not enough deals",length,n)
         return
     for i in range(n):
-        text = text + "\n" + deals[i].getTitle() + " : " + deals[i].getVendor() + " : " + deals[i].getLink() + "\n" + deals[i].getContent() + "\n----------------------------------------"
+        text = text + "Title:" + deals[i].getTitle() + "\nVendor:" + deals[i].getVendor() + "\nURL:" + deals[i].getLink() + "\nContent:" + deals[i].getContent() + "\n----------------------------------------"
     return text
 
 def displayDeals(deals, n):
@@ -52,7 +57,18 @@ def displayDeals(deals, n):
         return
     print("Title, vendor, URL, content")
     for i in range(n):
-        print(deals[i].getTitle(),":",deals[i].getVendor(),":",deals[i].getLink(),"\n",deals[i].getContent() + "\n----------------------------------------")
+        print("Title:",deals[i].getTitle(),"\nVendor:",deals[i].getVendor(),"\nURL:",deals[i].getLink(),"\nContent:",deals[i].getContent() + "\n----------------------------------------")
+
+def displayDealsDetails(deals):
+    print("----------------------")
+    print("Title:",deals.getTitle())
+    print("URL:",deals.getLink())
+    print("Vendor:",deals.getVendor())
+    print("Author:",deals.getAuthor())
+    print("Vendor URL:",deals.getOutsideLink())
+    print("Price:",deals.getPrice())
+    print("Time:",deals.getTime())
+    print("Content: ",deals.getContent())
 
 def sendEmail(deals, num, email):
     data = getDealsText(deals, num)
@@ -143,10 +159,10 @@ def getFromSQL():
     mycursor.execute("SELECT * FROM `Dealsea`")
 
     myresult = mycursor.fetchall()
-
-    for x in myresult:
-      print(x)
-      pass
+    return myresult
+    #for x in myresult:
+      #print(x)
+      #pass
 
 def getDealDetails(URL):
     webdata = urllib.request.urlopen("http://www.dealsea.com"+URL)
@@ -158,6 +174,7 @@ def getDealDetails(URL):
     nextT = difDiv[-1]
     try:
         Author = nextT.findAll('p')[1].get_text()
+        Time,Author = Author.split("by ")
     except:
         Author = ""
     title = soup.find("h1").get_text()
@@ -167,7 +184,6 @@ def getDealDetails(URL):
     vendorURL = divSoup.a.get('href')
     try:
         linkedURL = requests.get("http://dealsea.com"+vendorURL).url
-        print('heree')
     except requests.exceptions.Timeout:
         linkedURL = "http://dealsea.com"+vendorURL
         print("Unable to resolve link.")
@@ -179,6 +195,7 @@ def getDealDetails(URL):
     newDeal.setAuthor(Author)
     newDeal.setOutsideLink(linkedURL)
     newDeal.setPrice(price)
+    newDeal.setTime(Time)
     return newDeal
 
 def getDealsFromWebpage():
@@ -237,6 +254,7 @@ def unitTest():
     else:
         print("Fail.")
         return False
+
 def makeUnitTest():
     webData = getDealsFromWebpage()
     parseData = parse(webData)
@@ -254,22 +272,32 @@ def makeUnitTest():
         print("Unit test successful written.")
     else:
         print("Unit test writing failed")
+
+def printSQLData(data):
+    for i in data:
+        dealSea.append(deal(i[0],i[1],i[2],i[3]))
+    displayDeals(dealSea,len(dealSea))
+
 #MEAT
 
 access = 0
 data = ""
 while(access != -1):
     try:
-        access = int(input("1:Get data from http 2: get data from file 3: save data to file 4: pass onto parsing"))
+        access = int(input("----------------------\n1: Get data from http \n2: Get data from file \n3: Save data to file \n4: Pass onto parsing\n"))
     except ValueError:
         access = 0
     if access == 1:
         data = getDealsFromWebpage()
+        print("Got deals from webpage.")
     elif access == 2:
         data = readDealsFromFile()
+        print("Got deals from file.")
     elif access == 3:
         writeDealsToFile(data)
+        print("Deals written to file.")
     elif access == 4:
+        print("Parsing...")
         access = -1
 
 data = getDealsFromWebpage()
@@ -279,35 +307,44 @@ dealSea = parse(data)
 ans = 0
 while(ans != -1):
     try:
-        ans = int(input("1:displayDeals 2: send deal Email 3: Send deal SMS 4: send to SQL 5: get from SQL 6: get deal details from page 7: Truncate SQL database 8:run unit test\n"))
+        ans = int(input("----------------------\n1: Display deals \n2: Send deal Email \n3: Send deal SMS \n4: Send to SQL \n5: Get from SQL \n6: Truncate SQL database \n7: Get deal details from page \n8: Run unit test\n"))
     except ValueError:
         ans = 0
     if ans == 1:
-        num = int(input("How many deals to display?"))
+        num = int(input("How many deals to display? "))
         displayDeals(dealSea, num)
     elif ans == 2:
-        num = int(input("How many deals to mail?"))
-        email = input("Email address")
+        num = int(input("How many deals to mail? "))
+        email = input("Email address? ")
         print(sendEmail(dealSea, num, email))
     elif ans == 3:
         print(sendSMS(dealSea[0].getTitle()))
     elif ans == 4:
-        num = int(input("How many deals to mail?"))
-        sendToSQL(dealSea,num)
+        num = int(input("How many deals to insert? "))
+        try:
+            sendToSQL(dealSea,num)
+            print("Success.")
+        except:
+            print("Fail.")
     elif ans == 5:
-        getFromSQL()
-    elif ans == 7:
-        truncateSQLDatabase()
+        try:
+            printSQLData(getFromSQL())
+        except:
+            print("Fail.")
+    elif ans == 6:
+        try:
+            truncateSQLDatabase()
+        except:
+            print("Fail.")
     elif ans == 8:
         unitTest()
     elif ans == 9:
         makeUnitTest()
-    elif ans == 6:
+    elif ans == 7:
         try:
             for i in dealSea:
                 newDeal = getDealDetails(i.getLink())
-                print(newDeal.getAuthor(),newDeal.getOutsideLink(),newDeal.getPrice())
-                print(newDeal.getTitle())
+                displayDealsDetails(newDeal)
         except KeyboardInterrupt:
             pass
 
