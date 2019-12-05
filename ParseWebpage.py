@@ -105,7 +105,7 @@ def sendToSQL(deals,n):
     database="lancejor_COSC1437"
     mydb = mysql.connector.connect(host=host,user=user,password=password,database=database)
     mycursor = mydb.cursor()
-    for i in deals:
+    for i in deals[0:n]:
         sql = "INSERT INTO `Dealsea` (`title`, `link`, `content`, `vendor`) VALUES (%s, %s, %s, %s);"
         val = (i.getTitle(),i.getLink(),i.getContent(),i.getVendor())
         mycursor.execute(sql, val)
@@ -156,7 +156,10 @@ def getDealDetails(URL):
     divSoup = soup.find("div", class_="deal")
     difDiv = divSoup.findAll("div")
     nextT = difDiv[-1]
-    Author = nextT.findAll('p')[1].get_text()
+    try:
+        Author = nextT.findAll('p')[1].get_text()
+    except:
+        Author = ""
     title = soup.find("h1").get_text()
 
     divSoup = soup.find("div", class_="posttext")
@@ -296,7 +299,7 @@ while(ans != -1):
     elif ans == 7:
         truncateSQLDatabase()
     elif ans == 8:
-        UnitTest()
+        unitTest()
     elif ans == 9:
         makeUnitTest()
     elif ans == 6:
