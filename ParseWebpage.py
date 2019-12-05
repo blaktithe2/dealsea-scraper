@@ -274,9 +274,10 @@ def makeUnitTest():
         print("Unit test writing failed")
 
 def printSQLData(data):
+    dealSea2 = []
     for i in data:
-        dealSea.append(deal(i[0],i[1],i[2],i[3]))
-    displayDeals(dealSea,len(dealSea))
+        dealSea2.append(deal(i[0],i[1],i[2],i[3]))
+    displayDeals(dealSea2,len(dealSea2))
 
 #MEAT
 
@@ -328,12 +329,14 @@ while(ans != -1):
             print("Fail.")
     elif ans == 5:
         try:
-            printSQLData(getFromSQL())
+            dealSea = getFromSQL()
+            printSQLData(dealSea)
         except:
             print("Fail.")
     elif ans == 6:
         try:
             truncateSQLDatabase()
+            print("Cleared.")
         except:
             print("Fail.")
     elif ans == 8:
